@@ -13,9 +13,10 @@ import {
   ListItemText,
 } from "@mui/material";
 
-function Chat() {
+function Chat({ user }) {
   //backend connection
   const socket = io.connect("http://localhost:4000");
+
 
   const [message, setMessage] = useState("");
 
@@ -27,18 +28,20 @@ function Chat() {
     socket.on("receive_message", (data) => {
       setMessages((prev) => [...prev, data]); // ? research this syntax
     });
+
+    return () => {
+      socket.off("receive_message"); // Clean up the listener
+    };
   }, []);
 
   const sendMessage = () => {
     if (message.trim()) {
       socket.emit("send_message", {
         text: message,
-        sender: "gyb",
+        sender: user.displayName || user.email,
       });
-      // clear message state
+      console.log(message);
       setMessage("");
-      console.log(messages);
-      
     }
   };
   return (
@@ -78,15 +81,22 @@ function Chat() {
           {messages.map((msg, index) => (
             <ListItem key={index} sx={{ mb: 1 }}>
               <Paper
-                sx={{
+                sx={msg.sender === user.displayName ? {
+                  display: "flex",
                   padding: 1,
-                  bgcolor: msg.sender === "User" ? "#e3f2fd" : "#f1f8e9",
+                  bgcolor: "#78ce7f",
                   width: "100%",
+                  textAlign: "right",
+
+                } : {
+                  padding: 1,
+                  bgcolor: "#ce8b78",
+                  width: "100%"
                 }}
               >
                 <ListItemText
                   primary={
-                    <Typography variant="body1">{msg.sender}</Typography>
+                    <Typography variant="body1" sx={{fontWeight: 700}}>{msg.sender}</Typography>
                   }
                   secondary={
                     <Typography variant="body2">{msg.text}</Typography>
